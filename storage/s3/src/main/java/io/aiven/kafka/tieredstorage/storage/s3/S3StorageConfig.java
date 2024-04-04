@@ -43,6 +43,9 @@ public class S3StorageConfig extends AbstractConfig {
 
     public static final String S3_BUCKET_NAME_CONFIG = "s3.bucket.name";
     private static final String S3_BUCKET_NAME_DOC = "S3 bucket to store log segments";
+
+    private static final String S3_USE_CRT_CLIENT_CONFIG = "s3.crt.enabled";
+    private static final String S3_USE_CRT_CLIENT_DOC = "Use S3 CRT client";
     public static final String S3_ENDPOINT_URL_CONFIG = "s3.endpoint.url";
     private static final String S3_ENDPOINT_URL_DOC = "Custom S3 endpoint URL. "
         + "To be used with custom S3-compatible backends (e.g. minio).";
@@ -101,6 +104,12 @@ public class S3StorageConfig extends AbstractConfig {
                 new ConfigDef.NonEmptyString(),
                 ConfigDef.Importance.HIGH,
                 S3_BUCKET_NAME_DOC)
+            .define(
+                S3_USE_CRT_CLIENT_CONFIG,
+                ConfigDef.Type.BOOLEAN,
+                false,
+                ConfigDef.Importance.HIGH,
+                S3_USE_CRT_CLIENT_DOC)
             .define(
                 S3_ENDPOINT_URL_CONFIG,
                 ConfigDef.Type.STRING,
@@ -251,6 +260,10 @@ public class S3StorageConfig extends AbstractConfig {
 
     public Boolean checksumCheckEnabled() {
         return getBoolean(AWS_CHECKSUM_CHECK_ENABLED_CONFIG);
+    }
+
+    public Boolean crtEnabled() {
+        return getBoolean(S3_USE_CRT_CLIENT_CONFIG);
     }
 
     public String bucketName() {

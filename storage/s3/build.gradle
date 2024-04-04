@@ -27,6 +27,8 @@ dependencies {
         dep.exclude group: "org.slf4j"
     }
     implementation ("software.amazon.awssdk:s3:$awsSdkVersion") {excludeFromAWSDeps(it)}
+    implementation ("software.amazon.awssdk.crt:aws-crt:0.29.14") { excludeFromAWSDeps(it) }
+
     runtimeOnly ("software.amazon.awssdk:sts:$awsSdkVersion") {excludeFromAWSDeps(it)}
 
     implementation ("software.amazon.awssdk:netty-nio-client:$awsSdkVersion") { excludeFromAWSDeps(it) }

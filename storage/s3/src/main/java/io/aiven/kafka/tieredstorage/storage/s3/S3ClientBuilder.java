@@ -24,10 +24,46 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 
 class S3ClientBuilder {
     static S3AsyncClient build(final S3StorageConfig config) {
+        if (config.crtEnabled()) {
+            return buildCtrAsyncClient(config);
+        }
+        return buildAsyncClient(config);
+    }
+
+    static S3AsyncClient buildCtrAsyncClient(final S3StorageConfig config) {
+        final S3CrtAsyncClientBuilder s3ClientBuilder = S3AsyncClient.crtBuilder();
+        final Region region = config.region();
+        if (Objects.isNull(config.s3ServiceEndpoint())) {
+            s3ClientBuilder.region(region);
+        } else {
+            s3ClientBuilder.region(region)
+                .endpointOverride(config.s3ServiceEndpoint());
+        }
+        if (config.pathStyleAccessEnabled() != null) {
+            s3ClientBuilder.forcePathStyle(config.pathStyleAccessEnabled());
+        }
+
+        final var httpConfig =
+            S3CrtHttpConfiguration.builder().trustAllCertificatesEnabled(!config.certificateCheckEnabled())
+                .connectionTimeout(config.apiCallTimeout()).build();
+        s3ClientBuilder.httpConfiguration(httpConfig);
+
+        s3ClientBuilder.checksumValidationEnabled(config.checksumCheckEnabled());
+        final AwsCredentialsProvider credentialsProvider = config.credentialsProvider();
+        if (credentialsProvider != null) {
+            s3ClientBuilder.credentialsProvider(credentialsProvider);
+        }
+
+        return s3ClientBuilder.build();
+    }
+
+    static S3AsyncClient buildAsyncClient(final S3StorageConfig config) {
         final software.amazon.awssdk.services.s3.S3AsyncClientBuilder s3ClientBuilder = S3AsyncClient.builder();
         final Region region = config.region();
         if (Objects.isNull(config.s3ServiceEndpoint())) {

@@ -133,4 +133,22 @@ class S3ClientBuilderTest {
         assertThat(clientConfiguration.overrideConfiguration().apiCallAttemptTimeout())
             .hasValue(Duration.ofMillis(1000));
     }
+
+    @Test
+    void testBuildCrtClient() {
+        final var configs = Map.of(
+            "s3.bucket.name", "b",
+            "s3.region", TEST_REGION.id(),
+            "s3.api.call.timeout", 5000,
+            "s3.api.call.attempt.timeout", 1000,
+            "s3.crt.enabled", true
+        );
+        final var config = new S3StorageConfig(configs);
+        final var s3Client = S3ClientBuilder.build(config);
+        final var clientConfiguration = s3Client.serviceClientConfiguration();
+        assertThat(clientConfiguration.region()).isEqualTo(TEST_REGION);
+        assertThat(clientConfiguration.endpointOverride()).isNotPresent();
+        assertThat(clientConfiguration.overrideConfiguration().metricPublishers())
+            .allSatisfy(metricPublisher -> assertThat(metricPublisher).isInstanceOf(MetricCollector.class));
+    }
 }
