@@ -29,14 +29,23 @@ import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 
 class S3ClientBuilder {
+
+    public static enum ClientType {
+        DOWNLOAD, UPLOAD
+    }
+
     static S3AsyncClient build(final S3StorageConfig config) {
+        return build(config, ClientType.DOWNLOAD);
+    }
+
+    static S3AsyncClient build(final S3StorageConfig config, final ClientType clientType) {
         if (config.crtEnabled()) {
-            return buildCtrAsyncClient(config);
+            return buildCtrAsyncClient(config, clientType);
         }
         return buildAsyncClient(config);
     }
 
-    static S3AsyncClient buildCtrAsyncClient(final S3StorageConfig config) {
+    static S3AsyncClient buildCtrAsyncClient(final S3StorageConfig config, final ClientType clientType) {
         final S3CrtAsyncClientBuilder s3ClientBuilder = S3AsyncClient.crtBuilder();
         final Region region = config.region();
         if (Objects.isNull(config.s3ServiceEndpoint())) {
@@ -47,6 +56,12 @@ class S3ClientBuilder {
         }
         if (config.pathStyleAccessEnabled() != null) {
             s3ClientBuilder.forcePathStyle(config.pathStyleAccessEnabled());
+        }
+
+        if (config.crtUploadThroughputGb() > 0) {
+            if (clientType.equals(ClientType.UPLOAD)) {
+                s3ClientBuilder.targetThroughputInGbps(config.crtUploadThroughputGb());
+            }
         }
 
         final var httpConfig =

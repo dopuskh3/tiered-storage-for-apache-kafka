@@ -46,6 +46,10 @@ public class S3StorageConfig extends AbstractConfig {
 
     private static final String S3_USE_CRT_CLIENT_CONFIG = "s3.crt.enabled";
     private static final String S3_USE_CRT_CLIENT_DOC = "Use S3 CRT client";
+
+    private static final String S3_CRT_UPLOAD_THROUGHPUT_MB_CONFIG = "s3.crt.upload.throughput_mb";
+    private static final String S3_CRT_UPLOAD_THROUGHPUT_MB_DOC = "S3 CRT target upload throughput in MB";
+
     public static final String S3_ENDPOINT_URL_CONFIG = "s3.endpoint.url";
     private static final String S3_ENDPOINT_URL_DOC = "Custom S3 endpoint URL. "
         + "To be used with custom S3-compatible backends (e.g. minio).";
@@ -110,6 +114,12 @@ public class S3StorageConfig extends AbstractConfig {
                 false,
                 ConfigDef.Importance.HIGH,
                 S3_USE_CRT_CLIENT_DOC)
+            .define(
+                S3_CRT_UPLOAD_THROUGHPUT_MB_CONFIG,
+                ConfigDef.Type.DOUBLE,
+                0.0,
+                ConfigDef.Importance.HIGH,
+                S3_CRT_UPLOAD_THROUGHPUT_MB_DOC)
             .define(
                 S3_ENDPOINT_URL_CONFIG,
                 ConfigDef.Type.STRING,
@@ -264,6 +274,10 @@ public class S3StorageConfig extends AbstractConfig {
 
     public Boolean crtEnabled() {
         return getBoolean(S3_USE_CRT_CLIENT_CONFIG);
+    }
+
+    public Double crtUploadThroughputGb() {
+        return getDouble(S3_CRT_UPLOAD_THROUGHPUT_MB_CONFIG) / 1024.0;
     }
 
     public String bucketName() {
